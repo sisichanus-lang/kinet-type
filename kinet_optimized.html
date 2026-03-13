@@ -31,7 +31,7 @@
     max-height: 100vh;
     aspect-ratio: 16 / 9;
   }
-  canvas { display: block; border: 2px solid #000; width: 100%; height: 100%; }
+  canvas { display: block; width: 100%; height: 100%; }
 
   /* ── Control Panel ── */
   #controls {
@@ -211,12 +211,12 @@
     <!-- Weight -->
     <div class="ctrl-row">
       <label class="ctrl-label" for="sl-weight">Stroke W</label>
-      <input type="range" id="sl-weight" min="5" max="35" value="20" step="1">
+      <input type="range" id="sl-weight" min="5" max="35" value="35" step="1">
     </div>
     <!-- Stroke Weight -->
     <div class="ctrl-row">
       <label class="ctrl-label" for="sl-stroke-w">Weight</label>
-      <input type="range" id="sl-stroke-w" min="0" max="20" value="3" step="1">
+      <input type="range" id="sl-stroke-w" min="0" max="20" value="20" step="1">
     </div>
     <!-- Size -->
     <div class="ctrl-row">
@@ -332,8 +332,8 @@ const canvas = document.getElementById('c');
 const ctx    = canvas.getContext('2d', { alpha: false });
 
 // ── State ───────────────────────────────
-let strokeW  = 20;
-let strokeWeight = 3;
+let strokeW  = 35;
+let strokeWeight = 20;
 let unitSize = 2.4;
 let leading  = 40;
 let tracking = 0;
@@ -347,7 +347,7 @@ let controlsVisible = true;
 const letterHeight = 300;
 const controlPanelWidth = 160;
 
-let letters = ['t', 'y', 'p', 'e', '\n', 'a', 'n', 'd', '\n', 'd', 'a', 'n', 'c', 'e'];
+let letters = ['t', 'y', 'p', 'e'];
 
 // ── Audio ──────────────────────────────────────
 let audioCtx     = null;
@@ -508,8 +508,8 @@ function exportCanvas() {
 
 function resetEverything() {
   letters = ['t', 'y', 'p', 'e'];
-  strokeW = 20; document.getElementById('sl-weight').value = 20;
-  strokeWeight = 3; document.getElementById('sl-stroke-w').value = 3;
+  strokeW = 35; document.getElementById('sl-weight').value = 35;
+  strokeWeight = 20; document.getElementById('sl-stroke-w').value = 20;
   unitSize = 2.4; document.getElementById('sl-size').value = 2.4;
   leading = 40; document.getElementById('sl-leading').value = 40;
   tracking = 0; document.getElementById('sl-tracking').value = 0;
