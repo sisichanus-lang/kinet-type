@@ -58,12 +58,12 @@
     font-size: 9.9px;
     margin-bottom: 3px;
     color: #0000ff;
-    letter-spacing: 0.025em;
+    letter-spacing: -0.05em;
     text-transform: uppercase;
     font-family: 'KMR-Waldenburg', monospace;
   }
-  .ctrl-label.green { color: #00cc00; font-size: 9.9px; letter-spacing: 0.025em; }
-  .ctrl-label.red { color: #ff0000; font-size: 9.9px; letter-spacing: 0.025em; }
+  .ctrl-label.green { color: #00cc00; font-size: 9.9px; letter-spacing: -0.05em; }
+  .ctrl-label.red { color: #ff0000; font-size: 9.9px; letter-spacing: -0.05em; }
 
   input[type=range] {
     -webkit-appearance: none;
@@ -97,16 +97,16 @@
   .btn-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
   button {
     flex: 1;
-    min-width: 40px;
+    min-width: 60px;
     padding: 5px 4px;
     font-size: 9.9px;
     font-family: 'KMR-Waldenburg', monospace;
     cursor: pointer;
-    border: 2.5px solid #000;
+    border: 1.75px solid #000;
     background: #fff;
     color: #000;
     text-transform: uppercase;
-    letter-spacing: 0.025em;
+    letter-spacing: -0.05em;
     transition: background 0.15s;
   }
   button:hover { background: #ff00ff22; }
@@ -116,15 +116,15 @@
   select {
     width: 100%;
     padding: 4px 6px;
-    font-size: 11px;
+    font-size: 9.9px;
     font-family: 'KMR-Waldenburg', monospace;
-    border: 2.5px solid #000;
+    border: 1.75px solid #000;
     background: #000;
     color: #fff;
     cursor: pointer;
     margin-bottom: 8px;
     text-transform: uppercase;
-    letter-spacing: 0.025em;
+    letter-spacing: -0.05em;
   }
   select option { background: #111; color: #fff; }
 
@@ -137,7 +137,7 @@
   .color-swatch {
     width: 24px;
     height: 24px;
-    border: 2.5px solid #000;
+    border: 1.75px solid #000;
     cursor: pointer;
     flex-shrink: 0;
   }
@@ -145,7 +145,7 @@
     font-size: 9.9px;
     color: #0000ff;
     text-transform: uppercase;
-    letter-spacing: 0.025em;
+    letter-spacing: -0.05em;
     font-family: 'KMR-Waldenburg', monospace;
   }
   input[type=color] {
@@ -166,9 +166,11 @@
     font-size: 9.9px;
     min-width: unset;
     flex: unset;
-    border: 2.5px solid #000;
+    border: 1.75px solid #000;
     background: #fff;
-    letter-spacing: 0.025em;
+    letter-spacing: -0.05em;
+    font-family: 'KMR-Waldenburg', monospace;
+    text-transform: uppercase;
   }
   #topbar button:hover {
     background: #ff00ff22;
@@ -239,6 +241,15 @@
     <div class="ctrl-row">
       <label class="ctrl-label" for="sl-tracking">Tracking</label>
       <input type="range" id="sl-tracking" min="-50" max="100" value="0" step="1">
+    </div>
+
+    <!-- Alignment buttons (Left, Right, Center) - Two rows layout -->
+    <div class="btn-row" style="gap:4px;margin-top:8px;">
+      <button onclick="alignLeft()" style="flex:1;font-size:9.9px;letter-spacing:-0.05em;font-family:'KMR-Waldenburg',monospace;padding:5px 4px;text-transform:uppercase;border:1.75px solid #000;background:#fff;color:#000;cursor:pointer;">Left</button>
+      <button onclick="alignRight()" style="flex:1;font-size:9.9px;letter-spacing:-0.05em;font-family:'KMR-Waldenburg',monospace;padding:5px 4px;text-transform:uppercase;border:1.75px solid #000;background:#fff;color:#000;cursor:pointer;">Right</button>
+    </div>
+    <div class="btn-row" style="gap:4px;margin-top:4px;">
+      <button onclick="alignCenter()" style="flex:1;font-size:9.9px;letter-spacing:-0.05em;font-family:'KMR-Waldenburg',monospace;padding:5px 4px;text-transform:uppercase;border:1.75px solid #000;background:#fff;color:#000;cursor:pointer;">Center</button>
     </div>
 
     <hr style="border:none;border-top:1px solid #ccc;margin:8px 0">
@@ -421,6 +432,82 @@ function fileSelected(input) {
   reader.readAsArrayBuffer(file);
 }
 
+function loadDefaultAudio() {
+  fetch('SampleMusic.wav')
+    .then(response => response.arrayBuffer())
+    .then(arrayBuffer => {
+      ensureAudioCtx();
+      audioCtx.decodeAudioData(arrayBuffer, buf => {
+        audioBuffer = buf;
+        console.log('Default audio loaded:', buf.duration, 'seconds');
+      });
+    })
+    .catch(err => console.error('Failed to load default audio:', err));
+}
+
+function calculateLineWidths() {
+  const lines = [];
+  let currentLine = [];
+  let currentWidth = 0;
+  
+  for (let i = 0; i < letters.length; i++) {
+    if (letters[i] === '\n') {
+      lines.push({ indices: currentLine, width: currentWidth });
+      currentLine = [];
+      currentWidth = 0;
+    } else {
+      currentLine.push(i);
+      const advances = {
+        a:140, b:120, c:120, d:140, e:120, f:110, g:140,
+        h:120, i:120, j:120, k:120, l:80,  m:240, n:140,
+        o:120, p:120, q:120, r:140, s:120, t:140, u:180,
+        v:120, w:230, x:180, y:120, z:120, ' ':60
+      };
+      const baseTracking = 60 - PLAY_1 / 6;
+      currentWidth += (advances[letters[i]] || 0) + baseTracking + tracking;
+    }
+  }
+  if (currentLine.length > 0) {
+    lines.push({ indices: currentLine, width: currentWidth });
+  }
+  return lines;
+}
+
+function alignLeft() {
+  const lines = calculateLineWidths();
+  for (let line of lines) {
+    for (let idx of line.indices) {
+      charOffsets[idx] = { x: 0, y: 0 };
+    }
+  }
+}
+
+function alignCenter() {
+  const lines = calculateLineWidths();
+  const canvasWidth = canvas.width - controlPanelWidth - 107;
+  
+  for (let line of lines) {
+    const offset = (canvasWidth - line.width * unitSize) / 2;
+    for (let idx of line.indices) {
+      if (!charOffsets[idx]) charOffsets[idx] = { x: 0, y: 0 };
+      charOffsets[idx].x = offset;
+    }
+  }
+}
+
+function alignRight() {
+  const lines = calculateLineWidths();
+  const canvasWidth = canvas.width - controlPanelWidth - 107;
+  
+  for (let line of lines) {
+    const offset = canvasWidth - line.width * unitSize;
+    for (let idx of line.indices) {
+      if (!charOffsets[idx]) charOffsets[idx] = { x: 0, y: 0 };
+      charOffsets[idx].x = offset;
+    }
+  }
+}
+
 function playSound() {
   ensureAudioCtx();
   if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -534,6 +621,7 @@ function getCharAtPosition(clickX, clickY) {
 
 // ── Canvas mouse events for per-character dragging ────────────────────
 canvas.addEventListener('mousedown', e => {
+  // Don't prevent default to allow keyboard focus to remain
   if (e.clientX > controlPanelWidth && letters.length > 0) {
     const rect = canvas.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
@@ -596,8 +684,10 @@ canvas.addEventListener('mousemove', e => {
 });
 
 // ── Keyboard ───────────────────────────────────
-document.addEventListener('keydown', e => {
+window.addEventListener('keydown', e => {
+  // Only ignore keyboard input if focus is on form controls
   if (['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  
   if (e.key === 'Backspace') {
     if (letters.length > 0) {
       const idx = letters.length - 1;
@@ -607,13 +697,14 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
   } else if (e.key === 'Enter') {
     letters.push('\n');
+    e.preventDefault();
   } else if (e.key.length === 1) {
     const ch = e.key.toLowerCase();
     const newIdx = letters.length;
     letters.push(ch);
     charOffsets[newIdx] = { x: 0, y: 0 };
   }
-});
+}, true);  // Use capture phase to ensure we catch all keydown events
 
 // ── UI helpers ─────────────────────────────────
 function toggleControls() {
@@ -1259,7 +1350,10 @@ function draw() {
   ctx.restore();
 }
 
-// ── Start ──────────────────────────────────────
+// // ── Start ───────────────────────────────────
+initCharOffsets();  // Initialize default character offsets
+alignCenter();      // Set default center alignment
+loadDefaultAudio();
 draw();
 </script>
 </body>
